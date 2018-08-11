@@ -11,7 +11,7 @@ library(reshape)
 data_path <- "/Volumes/huizinga/MLB/From Kyle/"
 save_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/"
 
-year_list <- c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
+year_list <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
 
 #Run if starting from scratch
 # for (y in year_list) {
@@ -19,6 +19,8 @@ year_list <- c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
 #          src_sqlite(paste0(data_path, "d.", y, "i.sqlite3"), create=TRUE))
 # }
 # 
+# scrape(start="2008-03-25",end="2008-09-30",suffix="inning/inning_all.xml",connect=d.2008i$con)
+# scrape(start="2009-04-05",end="2009-10-06",suffix="inning/inning_all.xml",connect=d.2009i$con)
 # scrape(start="2010-04-04",end="2010-10-03",suffix="inning/inning_all.xml",connect=d.2010i$con)
 # scrape(start="2011-03-31",end="2011-09-28",suffix="inning/inning_all.xml",connect=d.2011i$con)
 # scrape(start="2012-03-28",end="2012-10-01",suffix="inning/inning_all.xml",connect=d.2012i$con)
@@ -34,6 +36,8 @@ for (y in year_list) {
          src_sqlite(paste0(data_path, "d.", y, "i.sqlite3")))
 }
 
+d1.2008p <- collect(tbl(d.2008i, "pitch"))
+d1.2009p <- collect(tbl(d.2009i, "pitch"))
 d1.2010p <- collect(tbl(d.2010i, "pitch"))
 d1.2011p <- collect(tbl(d.2011i, "pitch"))
 d1.2012p <- collect(tbl(d.2012i, "pitch"))
@@ -43,6 +47,8 @@ d1.2015p <- collect(tbl(d.2015i, "pitch"))
 d1.2016p <- collect(tbl(d.2016i, "pitch"))
 d1.2017p <- collect(tbl(d.2017i, "pitch"))
 
+d1.2008b <- collect(tbl(d.2008i, "atbat"))
+d1.2009b <- collect(tbl(d.2009i, "atbat"))
 d1.2010b <- collect(tbl(d.2010i, "atbat"))
 d1.2011b <- collect(tbl(d.2011i, "atbat"))
 d1.2012b <- collect(tbl(d.2012i, "atbat"))
@@ -52,6 +58,8 @@ d1.2015b <- collect(tbl(d.2015i, "atbat"))
 d1.2016b <- collect(tbl(d.2016i, "atbat"))
 d1.2017b <- collect(tbl(d.2017i, "atbat"))
 
+d1.2008r <- collect(tbl(d.2008i, "runner"))
+d1.2009r <- collect(tbl(d.2009i, "runner"))
 d1.2010r <- collect(tbl(d.2010i, "runner"))
 d1.2011r <- collect(tbl(d.2011i, "runner"))
 d1.2012r <- collect(tbl(d.2012i, "runner"))
@@ -95,14 +103,16 @@ atbat_select <- function(data, year) {
            url)
 }
 
+d1.2008b <- atbat_select(d1.2008b, "2008")
+d1.2009b <- atbat_select(d1.2009b, "2009")
 d1.2010b <- atbat_select(d1.2010b, "2010")
-d1.2011b <- atbat_select(d1.2010b, "2011")
-d1.2012b <- atbat_select(d1.2010b, "2012")
-d1.2013b <- atbat_select(d1.2010b, "2013")
-d1.2014b <- atbat_select(d1.2010b, "2014")
-d1.2015b <- atbat_select(d1.2010b, "2015")
-d1.2016b <- atbat_select(d1.2010b, "2016")
-d1.2017b <- atbat_select(d1.2010b, "2017")
+d1.2011b <- atbat_select(d1.2011b, "2011")
+d1.2012b <- atbat_select(d1.2012b, "2012")
+d1.2013b <- atbat_select(d1.2013b, "2013")
+d1.2014b <- atbat_select(d1.2014b, "2014")
+d1.2015b <- atbat_select(d1.2015b, "2015")
+d1.2016b <- atbat_select(d1.2016b, "2016")
+d1.2017b <- atbat_select(d1.2017b, "2017")
 
 pitch_select <- function(data, year) {
   data <- data %>%
@@ -157,14 +167,16 @@ pitch_select <- function(data, year) {
            url)
 }
 
+d1.2008p <- pitch_select(d1.2008p, "2008")
+d1.2009p <- pitch_select(d1.2009p, "2009")
 d1.2010p <- pitch_select(d1.2010p, "2010")
-d1.2011p <- pitch_select(d1.2010p, "2011")
-d1.2012p <- pitch_select(d1.2010p, "2012")
-d1.2013p <- pitch_select(d1.2010p, "2013")
-d1.2014p <- pitch_select(d1.2010p, "2014")
-d1.2015p <- pitch_select(d1.2010p, "2015")
-d1.2016p <- pitch_select(d1.2010p, "2016")
-d1.2017p <- pitch_select(d1.2010p, "2017")
+d1.2011p <- pitch_select(d1.2011p, "2011")
+d1.2012p <- pitch_select(d1.2012p, "2012")
+d1.2013p <- pitch_select(d1.2013p, "2013")
+d1.2014p <- pitch_select(d1.2014p, "2014")
+d1.2015p <- pitch_select(d1.2015p, "2015")
+d1.2016p <- pitch_select(d1.2016p, "2016")
+d1.2017p <- pitch_select(d1.2017p, "2017")
 
 runner_select <- function(data, year) {
   data <- data %>%
@@ -186,14 +198,24 @@ runner_select <- function(data, year) {
            url)
 }
 
+d1.2008r <- runner_select(d1.2008r, "2008")
+d1.2009r <- runner_select(d1.2009r, "2009")
 d1.2010r <- runner_select(d1.2010r, "2010")
-d1.2011r <- runner_select(d1.2010r, "2011")
-d1.2012r <- runner_select(d1.2010r, "2012")
-d1.2013r <- runner_select(d1.2010r, "2013")
-d1.2014r <- runner_select(d1.2010r, "2014")
-d1.2015r <- runner_select(d1.2010r, "2015")
-d1.2016r <- runner_select(d1.2010r, "2016")
-d1.2017r <- runner_select(d1.2010r, "2017")
+d1.2011r <- runner_select(d1.2011r, "2011")
+d1.2012r <- runner_select(d1.2012r, "2012")
+d1.2013r <- runner_select(d1.2013r, "2013")
+d1.2014r <- runner_select(d1.2014r, "2014")
+d1.2015r <- runner_select(d1.2015r, "2015")
+d1.2016r <- runner_select(d1.2016r, "2016")
+d1.2017r <- runner_select(d1.2017r, "2017")
+
+write.csv(d1.2008b, file=paste0(save_path, "At Bat Data/2008_atbat.csv"), row.names=FALSE)
+write.csv(d1.2008p, file=paste0(save_path, "Pitch Data/2008_pitch.csv"), row.names=FALSE)
+write.csv(d1.2008r, file=paste0(save_path, "Runner Data/2008_runner.csv"), row.names=FALSE)
+
+write.csv(d1.2009b, file=paste0(save_path, "At Bat Data/2009_atbat.csv"), row.names=FALSE)
+write.csv(d1.2009p, file=paste0(save_path, "Pitch Data/2009_pitch.csv"), row.names=FALSE)
+write.csv(d1.2009r, file=paste0(save_path, "Runner Data/2009_runner.csv"), row.names=FALSE)
 
 write.csv(d1.2010b, file=paste0(save_path, "At Bat Data/2010_atbat.csv"), row.names=FALSE)
 write.csv(d1.2010p, file=paste0(save_path, "Pitch Data/2010_pitch.csv"), row.names=FALSE)
