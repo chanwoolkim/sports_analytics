@@ -69,8 +69,8 @@ d1.2015r <- collect(tbl(d.2015i, "runner"))
 d1.2016r <- collect(tbl(d.2016i, "runner"))
 d1.2017r <- collect(tbl(d.2017i, "runner"))
 
-atbat_select <- function(data, year) {
-  data <- data %>%
+atbat_select <- function(df, year) {
+  df <- df %>%
     mutate(season = year) %>%
     select(season,
            gameday_link,
@@ -114,8 +114,8 @@ d1.2015b <- atbat_select(d1.2015b, "2015")
 d1.2016b <- atbat_select(d1.2016b, "2016")
 d1.2017b <- atbat_select(d1.2017b, "2017")
 
-pitch_select <- function(data, year) {
-  data <- data %>%
+pitch_select <- function(df, year) {
+  df <- df %>%
     mutate(season = year) %>%
     select(season,
            gameday_link,
@@ -178,8 +178,8 @@ d1.2015p <- pitch_select(d1.2015p, "2015")
 d1.2016p <- pitch_select(d1.2016p, "2016")
 d1.2017p <- pitch_select(d1.2017p, "2017")
 
-runner_select <- function(data, year) {
-  data <- data %>%
+runner_select <- function(df, year) {
+  df <- df %>%
     mutate(season = year) %>%
     select(season,
            gameday_link,
