@@ -1,6 +1,7 @@
 library(pitchRx)
 library(plyr)
 library(dplyr)
+library(tidyr)
 library(RSQLite)
 library(devtools)
 library(plm)
@@ -8,7 +9,7 @@ library(lmtest)
 library(clubSandwich)
 library(reshape)
 
-data_path <- "/Volumes/huizinga/MLB/From Kyle/"
+data_path <- "/Volumes/huizinga/MLB/Chanwool/"
 save_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/"
 
 year_list <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
@@ -248,3 +249,148 @@ write.csv(d1.2016r, file=paste0(save_path, "Runner Data/2016_runner.csv"), row.n
 write.csv(d1.2017b, file=paste0(save_path, "At Bat Data/2017_atbat.csv"), row.names=FALSE)
 write.csv(d1.2017p, file=paste0(save_path, "Pitch Data/2017_pitch.csv"), row.names=FALSE)
 write.csv(d1.2017r, file=paste0(save_path, "Runner Data/2017_runner.csv"), row.names=FALSE)
+
+rm(list=ls(pattern="d1."))
+
+
+#Summary table of players/umpires/coaches ####
+#Run if starting from scratch
+# for (y in year_list) {
+#   assign(paste0("d.", y, "p"),
+#          src_sqlite(paste0(data_path, "d.", y, "p.sqlite3"), create=TRUE))
+# }
+# 
+# scrape(start="2008-03-25",end="2008-09-30",suffix="players.xml",connect=d.2008p$con)
+# scrape(start="2009-04-05",end="2009-10-06",suffix="players.xml",connect=d.2009p$con)
+# scrape(start="2010-04-04",end="2010-10-03",suffix="players.xml",connect=d.2010p$con)
+# scrape(start="2011-03-31",end="2011-09-28",suffix="players.xml",connect=d.2011p$con)
+# scrape(start="2012-03-28",end="2012-10-01",suffix="players.xml",connect=d.2012p$con)
+# scrape(start="2013-03-31",end="2013-09-30",suffix="players.xml",connect=d.2013p$con)
+# scrape(start="2014-03-30",end="2014-09-28",suffix="players.xml",connect=d.2014p$con)
+# scrape(start="2015-04-05",end="2015-10-01",suffix="players.xml",connect=d.2015p$con)
+# scrape(start="2016-04-03",end="2016-10-02",suffix="players.xml",connect=d.2016p$con)
+# scrape(start="2017-04-02",end="2017-10-01",suffix="players.xml",connect=d.2017p$con)
+
+#Assuming that we have scraped the data already
+for (y in year_list) {
+  assign(paste0("d.", y, "p"),
+         src_sqlite(paste0(data_path, "d.", y, "p.sqlite3")))
+}
+
+#Extract id-name info
+extract_id <- function(df, source) {
+  if (source %in% c("player", "coach")) {
+    return(df %>% mutate(full_name = paste(first, last)) %>%
+      select(id, full_name))
+  }
+  if (source == "umpire") {
+    return(df %>% mutate(full_name = name) %>%
+      select(id, full_name))
+  }
+}
+
+d1.2008p <- extract_id(collect(tbl(d.2008p, "player")), "player")
+d1.2009p <- extract_id(collect(tbl(d.2009p, "player")), "player")
+d1.2010p <- extract_id(collect(tbl(d.2010p, "player")), "player")
+d1.2011p <- extract_id(collect(tbl(d.2011p, "player")), "player")
+d1.2012p <- extract_id(collect(tbl(d.2012p, "player")), "player")
+d1.2013p <- extract_id(collect(tbl(d.2013p, "player")), "player")
+d1.2014p <- extract_id(collect(tbl(d.2014p, "player")), "player")
+d1.2015p <- extract_id(collect(tbl(d.2015p, "player")), "player")
+d1.2016p <- extract_id(collect(tbl(d.2016p, "player")), "player")
+d1.2017p <- extract_id(collect(tbl(d.2017p, "player")), "player")
+
+d1.2008c <- extract_id(collect(tbl(d.2008p, "coach")), "coach")
+d1.2009c <- extract_id(collect(tbl(d.2009p, "coach")), "coach")
+d1.2010c <- extract_id(collect(tbl(d.2010p, "coach")), "coach")
+d1.2011c <- extract_id(collect(tbl(d.2011p, "coach")), "coach")
+d1.2012c <- extract_id(collect(tbl(d.2012p, "coach")), "coach")
+d1.2013c <- extract_id(collect(tbl(d.2013p, "coach")), "coach")
+d1.2014c <- extract_id(collect(tbl(d.2014p, "coach")), "coach")
+d1.2015c <- extract_id(collect(tbl(d.2015p, "coach")), "coach")
+d1.2016c <- extract_id(collect(tbl(d.2016p, "coach")), "coach")
+d1.2017c <- extract_id(collect(tbl(d.2017p, "coach")), "coach")
+
+d1.2008u <- extract_id(collect(tbl(d.2008p, "umpire")), "umpire")
+d1.2009u <- extract_id(collect(tbl(d.2009p, "umpire")), "umpire")
+d1.2010u <- extract_id(collect(tbl(d.2010p, "umpire")), "umpire")
+d1.2011u <- extract_id(collect(tbl(d.2011p, "umpire")), "umpire")
+d1.2012u <- extract_id(collect(tbl(d.2012p, "umpire")), "umpire")
+d1.2013u <- extract_id(collect(tbl(d.2013p, "umpire")), "umpire")
+d1.2014u <- extract_id(collect(tbl(d.2014p, "umpire")), "umpire")
+d1.2015u <- extract_id(collect(tbl(d.2015p, "umpire")), "umpire")
+d1.2016u <- extract_id(collect(tbl(d.2016p, "umpire")), "umpire")
+d1.2017u <- extract_id(collect(tbl(d.2017p, "umpire")), "umpire")
+
+#Player table
+player_table <- players
+player_table <- rbind(player_table,
+                       d1.2008p, d1.2009p, d1.2010p, d1.2011p, d1.2012p,
+                       d1.2013p, d1.2014p, d1.2015p, d1.2016p, d1.2017p) %>%
+  distinct(id, full_name)
+
+player_table <- player_table[order(player_table$id),]
+
+#Spread multiple full_names
+player_table <- player_table %>% group_by(id) %>%
+  mutate(n = row_number()) %>% ungroup %>%
+  spread(key = n, value = full_name) %>%
+  select(id,
+         full_name_1 = "1",
+         full_name_2 = "2",
+         full_name_3 = "3",
+         full_name_4 = "4") %>%
+  filter(id != 0)
+
+write.csv(player_table, file=paste0(save_path, "Summary/summary_player.csv"), row.names=FALSE)
+
+#Coach table
+coach_table <- rbind(d1.2008c, d1.2009c, d1.2010c, d1.2011c, d1.2012c,
+                      d1.2013c, d1.2014c, d1.2015c, d1.2016c, d1.2017c) %>%
+  distinct(id, full_name)
+
+coach_table <- coach_table[order(coach_table$id),]
+
+#Spread multiple full_names
+coach_table <- coach_table %>% group_by(id) %>%
+  mutate(n = row_number()) %>% ungroup %>%
+  spread(key = n, value = full_name) %>%
+  select(id,
+         full_name_1 = "1",
+         full_name_2 = "2",
+         full_name_3 = "3")
+
+write.csv(coach_table, file=paste0(save_path, "Summary/summary_coach.csv"), row.names=FALSE)
+
+#Umpire table
+umpire_table <- rbind(d1.2008u, d1.2009u, d1.2010u, d1.2011u, d1.2012u,
+                     d1.2013u, d1.2014u, d1.2015u, d1.2016u, d1.2017u) %>%
+  distinct(id, full_name)
+
+umpire_table <- umpire_table[order(umpire_table$id),]
+
+#Separate NAs
+umpire_table_na <- umpire_table %>%
+  filter(is.na(id) & full_name != "") %>%
+  mutate(id_na = TRUE)
+
+umpire_table <- umpire_table %>% filter(!is.na(id))
+
+#Spread multiple full_names
+umpire_table <- umpire_table %>% group_by(id) %>%
+  mutate(n = row_number()) %>% ungroup %>%
+  spread(key = n, value = full_name) %>%
+  select(id,
+         full_name_1 = "1",
+         full_name_2 = "2",
+         full_name_3 = "3") %>%
+  filter(id != 0)
+
+#See if any names missed ID before
+#Checked to make sure no matching full_name_2 and 3
+umpire_table <- full_join(umpire_table,
+                          umpire_table_na %>% select(id_na, full_name),
+                          by = c("full_name_1" = "full_name")) %>%
+  select(id, id_na, full_name_1, full_name_2, full_name_3)
+
+write.csv(umpire_table, file=paste0(save_path, "Summary/summary_umpire.csv"), row.names=FALSE)
