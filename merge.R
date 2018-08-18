@@ -10,7 +10,7 @@ library(clubSandwich)
 library(reshape)
 
 data_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/"
-save_path <- "/Volumes/huizinga/MLB/Chanwool/Basic Data/Pitch/"
+save_path <- "/Volumes/huizinga/MLB/Chanwool/Basic Data/"
 
 year_list <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
 
@@ -315,13 +315,36 @@ rm(list=ls(pattern="^pitch"))
 # 
 # rm(list=ls(pattern="^runner"))
 
-write.csv(df_2008, file=paste0(save_path, "df_2008.csv"), row.names=FALSE)
-write.csv(df_2009, file=paste0(save_path, "df_2009.csv"), row.names=FALSE)
-write.csv(df_2010, file=paste0(save_path, "df_2010.csv"), row.names=FALSE)
-write.csv(df_2011, file=paste0(save_path, "df_2011.csv"), row.names=FALSE)
-write.csv(df_2012, file=paste0(save_path, "df_2012.csv"), row.names=FALSE)
-write.csv(df_2013, file=paste0(save_path, "df_2013.csv"), row.names=FALSE)
-write.csv(df_2014, file=paste0(save_path, "df_2014.csv"), row.names=FALSE)
-write.csv(df_2015, file=paste0(save_path, "df_2015.csv"), row.names=FALSE)
-write.csv(df_2016, file=paste0(save_path, "df_2016.csv"), row.names=FALSE)
-write.csv(df_2017, file=paste0(save_path, "df_2017.csv"), row.names=FALSE)
+write.csv(df_2008, file=paste0(save_path, "Pitch/df_2008.csv"), row.names=FALSE)
+write.csv(df_2009, file=paste0(save_path, "Pitch/df_2009.csv"), row.names=FALSE)
+write.csv(df_2010, file=paste0(save_path, "Pitch/df_2010.csv"), row.names=FALSE)
+write.csv(df_2011, file=paste0(save_path, "Pitch/df_2011.csv"), row.names=FALSE)
+write.csv(df_2012, file=paste0(save_path, "Pitch/df_2012.csv"), row.names=FALSE)
+write.csv(df_2013, file=paste0(save_path, "Pitch/df_2013.csv"), row.names=FALSE)
+write.csv(df_2014, file=paste0(save_path, "Pitch/df_2014.csv"), row.names=FALSE)
+write.csv(df_2015, file=paste0(save_path, "Pitch/df_2015.csv"), row.names=FALSE)
+write.csv(df_2016, file=paste0(save_path, "Pitch/df_2016.csv"), row.names=FALSE)
+write.csv(df_2017, file=paste0(save_path, "Pitch/df_2017.csv"), row.names=FALSE)
+
+#Extract 0-0 counts
+df_ab_2008 <- df_2008 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2009 <- df_2009 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2010 <- df_2010 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2011 <- df_2011 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2012 <- df_2012 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2013 <- df_2013 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2014 <- df_2014 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2015 <- df_2015 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2016 <- df_2016 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+df_ab_2017 <- df_2017 %>% filter(count == "0,0") %>% distinct(gameday_link, num, .keep_all = TRUE)
+
+write.csv(df_ab_2008, file=paste0(save_path, "At Bat/df_ab_2008.csv"), row.names=FALSE)
+write.csv(df_ab_2009, file=paste0(save_path, "At Bat/df_ab_2009.csv"), row.names=FALSE)
+write.csv(df_ab_2010, file=paste0(save_path, "At Bat/df_ab_2010.csv"), row.names=FALSE)
+write.csv(df_ab_2011, file=paste0(save_path, "At Bat/df_ab_2011.csv"), row.names=FALSE)
+write.csv(df_ab_2012, file=paste0(save_path, "At Bat/df_ab_2012.csv"), row.names=FALSE)
+write.csv(df_ab_2013, file=paste0(save_path, "At Bat/df_ab_2013.csv"), row.names=FALSE)
+write.csv(df_ab_2014, file=paste0(save_path, "At Bat/df_ab_2014.csv"), row.names=FALSE)
+write.csv(df_ab_2015, file=paste0(save_path, "At Bat/df_ab_2015.csv"), row.names=FALSE)
+write.csv(df_ab_2016, file=paste0(save_path, "At Bat/df_ab_2016.csv"), row.names=FALSE)
+write.csv(df_ab_2017, file=paste0(save_path, "At Bat/df_ab_2017.csv"), row.names=FALSE)
