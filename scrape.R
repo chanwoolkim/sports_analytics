@@ -8,8 +8,9 @@ library(plm)
 library(lmtest)
 library(clubSandwich)
 library(reshape)
+library(stringr)
 
-data_path <- "/Volumes/huizinga/MLB/Chanwool/"
+data_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/sqlite3/"
 save_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/"
 
 year_list <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
@@ -72,14 +73,16 @@ d1.2017r <- collect(tbl(d.2017i, "runner"))
 
 atbat_select <- function(df, year) {
   df <- df %>%
-    mutate(season = year) %>%
+    mutate(season = year,
+           b_height = paste0(str_replace_all(b_height, "-", "'"), "\"")) %>%
     select(season,
-           gameday_link,
            date,
+           gameday_link,
            num,
            inning,
            inning_side,
            next_,
+           event_num,
            start_tfs,
            start_tfs_zulu,
            pitcher,
@@ -92,7 +95,6 @@ atbat_select <- function(df, year) {
            b,
            s,
            o,
-           event_num,
            atbat_des,
            event,
            event2,
@@ -101,7 +103,10 @@ atbat_select <- function(df, year) {
            score,
            home_team_runs,
            away_team_runs,
-           url)
+           url) %>%
+    group_by(gameday_link) %>%
+    arrange(num, .by_group = TRUE) %>%
+    ungroup
 }
 
 d1.2008b <- atbat_select(d1.2008b, "2008")
@@ -115,9 +120,38 @@ d1.2015b <- atbat_select(d1.2015b, "2015")
 d1.2016b <- atbat_select(d1.2016b, "2016")
 d1.2017b <- atbat_select(d1.2017b, "2017")
 
+#Also flag for bad pitch data
+#Bad pitch data is when there is no PITCHf/x info
 pitch_select <- function(df, year) {
   df <- df %>%
-    mutate(season = year) %>%
+    mutate(season = year,
+           count = str_replace_all(count, "-", ","),
+           BadData_P = ifelse(is.na(sz_top) &
+                                is.na(sz_bot) &
+                                is.na(pitch_type) &
+                                is.na(type_confidence) &
+                                is.na(start_speed) &
+                                is.na(end_speed) &
+                                is.na(y0) &
+                                is.na(x0) &
+                                is.na(z0) &
+                                is.na(vx0) &
+                                is.na(vy0) &
+                                is.na(vz0) &
+                                is.na(ax) &
+                                is.na(ay) &
+                                is.na(az) &
+                                is.na(spin_dir) &
+                                is.na(spin_rate) &
+                                is.na(px) &
+                                is.na(pz) &
+                                is.na(zone) &
+                                is.na(pfx_x) &
+                                is.na(pfx_z) &
+                                is.na(break_y) &
+                                is.na(break_angle) &
+                                is.na(break_length) &
+                                is.na(nasty), 1, 0)) %>%
     select(season,
            gameday_link,
            num,
@@ -165,7 +199,11 @@ pitch_select <- function(df, year) {
            nasty,
            cc,
            mt,
-           url)
+           url,
+           BadData_P) %>%
+    group_by(gameday_link) %>%
+    arrange(num, id, .by_group = TRUE) %>%
+    ungroup
 }
 
 d1.2008p <- pitch_select(d1.2008p, "2008")
@@ -178,6 +216,37 @@ d1.2014p <- pitch_select(d1.2014p, "2014")
 d1.2015p <- pitch_select(d1.2015p, "2015")
 d1.2016p <- pitch_select(d1.2016p, "2016")
 d1.2017p <- pitch_select(d1.2017p, "2017")
+
+#Now add this info to at.bat
+#Flag is 1 iff all pitches in that at.bat is 1
+pitch_check <- function(df) {
+  df <- df %>% group_by(gameday_link, num) %>%
+    summarise(bad_pitch = sum(BadData_P, na.rm = TRUE)) %>%
+    mutate(BadData_AB = ifelse(bad_pitch == 0, 0, 1)) %>%
+    select(gameday_link, num, BadData_AB)
+}
+
+d1.2008p_gn <- pitch_check(d1.2008p)
+d1.2009p_gn <- pitch_check(d1.2009p)
+d1.2010p_gn <- pitch_check(d1.2010p)
+d1.2011p_gn <- pitch_check(d1.2011p)
+d1.2012p_gn <- pitch_check(d1.2012p)
+d1.2013p_gn <- pitch_check(d1.2013p)
+d1.2014p_gn <- pitch_check(d1.2014p)
+d1.2015p_gn <- pitch_check(d1.2015p)
+d1.2016p_gn <- pitch_check(d1.2016p)
+d1.2017p_gn <- pitch_check(d1.2017p)
+
+d1.2008b <- left_join(d1.2008b, d1.2008p_gn, by = c("gameday_link", "num"))
+d1.2009b <- left_join(d1.2009b, d1.2009p_gn, by = c("gameday_link", "num"))
+d1.2010b <- left_join(d1.2010b, d1.2010p_gn, by = c("gameday_link", "num"))
+d1.2011b <- left_join(d1.2011b, d1.2011p_gn, by = c("gameday_link", "num"))
+d1.2012b <- left_join(d1.2012b, d1.2012p_gn, by = c("gameday_link", "num"))
+d1.2013b <- left_join(d1.2013b, d1.2013p_gn, by = c("gameday_link", "num"))
+d1.2014b <- left_join(d1.2014b, d1.2014p_gn, by = c("gameday_link", "num"))
+d1.2015b <- left_join(d1.2015b, d1.2015p_gn, by = c("gameday_link", "num"))
+d1.2016b <- left_join(d1.2016b, d1.2016p_gn, by = c("gameday_link", "num"))
+d1.2017b <- left_join(d1.2017b, d1.2017p_gn, by = c("gameday_link", "num"))
 
 runner_select <- function(df, year) {
   df <- df %>%
@@ -196,7 +265,10 @@ runner_select <- function(df, year) {
            score,
            rbi,
            earned,
-           url)
+           url) %>%
+    group_by(gameday_link) %>%
+    arrange(num, .by_group = TRUE) %>%
+    ungroup
 }
 
 d1.2008r <- runner_select(d1.2008r, "2008")

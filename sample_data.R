@@ -8,7 +8,7 @@ library(lmtest)
 library(clubSandwich)
 library(reshape)
 
-data_path <- "/Volumes/huizinga/MLB/From Kyle/"
+data_path <- "/Volumes/huizinga/MLB/Chanwool/Scraped Data/sqlite3/"
 save_path <- "/Volumes/huizinga/MLB/Chanwool/Sample Data/"
 
 #At-Bat, Pitch, and Runner data ####
@@ -43,6 +43,99 @@ runner.sample <- d1.2012r %>%
 write.csv(pitch.sample, file=paste0(save_path, "pitch_sample2012.csv"), row.names=FALSE)
 write.csv(atbat.sample, file=paste0(save_path, "at.bat_sample2012.csv"), row.names=FALSE)
 write.csv(runner.sample, file=paste0(save_path, "runner_sample2012.csv"), row.names=FALSE)
+
+#Choose other set of games with sz_top/sz_bot existence != start_speed/end_speed existence
+pitch_select <- function(df, year) {
+  df <- df %>%
+    mutate(season = year,
+           count = str_replace_all(count, "-", ",")) %>%
+    select(season,
+           gameday_link,
+           num,
+           inning,
+           inning_side,
+           next_,
+           id,
+           event_num,
+           tfs,
+           tfs_zulu,
+           sv_id,
+           count,
+           on_1b,
+           on_2b,
+           on_3b,
+           sz_top,
+           sz_bot,
+           type,
+           des,
+           pitch_type,
+           type_confidence,
+           start_speed,
+           end_speed,
+           y0,
+           x0,
+           z0,
+           vx0,
+           vy0,
+           vz0,
+           ax,
+           ay,
+           az,
+           spin_dir,
+           spin_rate,
+           px,
+           pz,
+           x,
+           y,
+           zone,
+           pfx_x,
+           pfx_z,
+           break_y,
+           break_angle,
+           break_length,
+           nasty,
+           cc,
+           mt,
+           url) %>%
+    group_by(gameday_link) %>%
+    arrange(num, id, .by_group = TRUE) %>%
+    ungroup
+}
+
+pitch.sample1 <- pitch_select(d1.2012p %>%
+  filter(gameday_link %in% c("gid_2012_05_13_wasmlb_cinmlb_1",
+                             "gid_2012_06_22_tormlb_miamlb_1",
+                             "gid_2012_06_27_clemlb_nyamlb_1",
+                             "gid_2012_07_01_anamlb_tormlb_1", 
+                             "gid_2012_09_01_tbamlb_tormlb_1")), "2012")
+
+write.csv(pitch.sample1, file=paste0(save_path, "pitch_sample2012_1.csv"), row.names=FALSE)
+
+pitch.sample2 <- pitch_select(d1.2012p %>%
+                                filter(gameday_link %in% c("gid_2012_04_04_chamlb_houmlb_1",
+                                                           "gid_2012_06_03_nyamlb_detmlb_1",
+                                                           "gid_2012_06_10_phimlb_balmlb_1",
+                                                           "gid_2012_06_24_tbamlb_phimlb_1", 
+                                                           "gid_2012_08_30_oakmlb_clemlb_1")), "2012")
+
+write.csv(pitch.sample2, file=paste0(save_path, "pitch_sample2012_2.csv"), row.names=FALSE)
+
+d.2016i <- src_sqlite(paste0(data_path, "d.2016i.sqlite3"))
+d1.2016p <- collect(tbl(d.2016i, "pitch"))
+d.2017i <- src_sqlite(paste0(data_path, "d.2017i.sqlite3"))
+d1.2017p <- collect(tbl(d.2017i, "pitch"))
+
+pitch.sample3 <- rbind(pitch_select(d1.2016p %>%
+                                filter(gameday_link %in% c("gid_2016_06_03_tormlb_bosmlb_1",
+                                                           "gid_2016_09_03_bosmlb_oakmlb_1",
+                                                           "gid_2016_09_18_houmlb_seamlb_1")), "2016"),
+                       pitch_select(d1.2017p %>%
+                                      filter(gameday_link %in% c("gid_2017_07_11_aasmlb_nasmlb_1",
+                                                                 "gid_2017_08_15_chamlb_lanmlb_1",
+                                                                 "gid_2017_08_19_anamlb_balmlb_1",
+                                                                 "gid_2017_09_22_chnmlb_milmlb_1")), "2017"))
+
+write.csv(pitch.sample3, file=paste0(save_path, "pitch_sample2016_2017.csv"), row.names=FALSE)
 
 
 #Other data ####

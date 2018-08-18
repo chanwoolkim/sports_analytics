@@ -1,6 +1,7 @@
 library(pitchRx)
 library(plyr)
 library(dplyr)
+library(tidyr)
 library(RSQLite)
 library(devtools)
 library(plm)
@@ -14,14 +15,14 @@ save_path <- "/Volumes/huizinga/MLB/Chanwool/Basic Data/Pitch/"
 year_list <- c(2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017)
 
 #Load all data ####
-
 for (y in year_list) {
   assign(paste0("atbat_", y),
          read.csv(paste0(data_path, "At Bat Data/", y, "_atbat.csv")))
   assign(paste0("pitch_", y),
          read.csv(paste0(data_path, "Pitch Data/", y, "_pitch.csv")))
-  assign(paste0("runner_", y),
-         read.csv(paste0(data_path, "Runner Data/", y, "_runner.csv")))
+  #Will deal with runner merge later
+  # assign(paste0("runner_", y),
+  #        read.csv(paste0(data_path, "Runner Data/", y, "_runner.csv")))
 }
 
 
@@ -48,16 +49,17 @@ pitch_2015 <- pitch_2015 %>% mutate(game.bnum = paste(gameday_link, num, sep="."
 pitch_2016 <- pitch_2016 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
 pitch_2017 <- pitch_2017 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
 
-runner_2008 <- runner_2008 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2009 <- runner_2009 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2010 <- runner_2010 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2011 <- runner_2011 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2012 <- runner_2012 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2013 <- runner_2013 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2014 <- runner_2014 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2015 <- runner_2015 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2016 <- runner_2016 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
-runner_2017 <- runner_2017 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+#Will deal with runner merge later
+# runner_2008 <- runner_2008 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2009 <- runner_2009 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2010 <- runner_2010 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2011 <- runner_2011 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2012 <- runner_2012 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2013 <- runner_2013 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2014 <- runner_2014 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2015 <- runner_2015 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2016 <- runner_2016 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
+# runner_2017 <- runner_2017 %>% mutate(game.bnum = paste(gameday_link, num, sep="."))
 
 
 #Check that gameday_link*num has no duplicates in at.bat data ####
@@ -93,9 +95,9 @@ atbat_2016 <- atbat_2016 %>%
 #Merge data ####
 #First need to rename variables with same names but different values
 clean_atbat <- function(atbat) {
-  atbat %>% dplyr::rename(event_num_ab = event_num,
-                          event_ab = event, event2_ab = event2, event3_ab = event3, event4_ab = event4,
-                          score_ab = score) %>%
+  atbat %>% dplyr::rename(event_num_ab = event_num) %>%
+                          #event_ab = event, event2_ab = event2, event3_ab = event3, event4_ab = event4,
+                          #score_ab = score) %>% #This matters when we also need to merge runner data
     mutate(gameday_link = as.character(gameday_link),
            date = as.character(date),
            inning_side = as.character(inning_side),
@@ -106,10 +108,14 @@ clean_atbat <- function(atbat) {
            stand = as.character(stand),
            b_height = as.character(b_height),
            atbat_des = as.character(atbat_des),
-           event_ab = as.character(event_ab),
-           event2_ab = as.character(event2_ab),
-           event3_ab = as.character(event3_ab),
-           event4_ab = as.character(event4_ab),
+           event = as.character(event),
+           event2 = as.character(event2),
+           event3 = as.character(event3),
+           event4 = as.character(event4),
+           #event_ab = as.character(event_ab),
+           #event2_ab = as.character(event2_ab),
+           #event3_ab = as.character(event3_ab),
+           #event4_ab = as.character(event4_ab),
            url = as.character(url))
 }
 
@@ -125,7 +131,8 @@ atbat_2016 <- clean_atbat(atbat_2016)
 atbat_2017 <- clean_atbat(atbat_2017)
 
 clean_pitch <- function(pitch) {
-  pitch %>% dplyr::rename(event_num_p = event_num, id_p = id) %>%
+  pitch %>% dplyr::rename(event_num_p = event_num) %>%
+                          #id_p = id) %>% #This matters when we also need to merge runner data
     select(-season, -gameday_link, -inning, -inning_side, -next_, -num, -url) %>%
     mutate(sv_id = as.character(sv_id),
            count = as.character(count),
@@ -148,48 +155,49 @@ pitch_2017 <- clean_pitch(pitch_2017)
 
 #Make sure unique rows for game.bnum in runner data
 #"Spread" variables by base
-clean_runner <- function(runner) {
-  runner %>% dplyr::rename(event_num_r = event_num) %>%
-    select(-season, -gameday_link, -inning, -inning_side, -next_, -num, -url) %>%
-    group_by(game.bnum) %>%
-    mutate(event = as.character(event),
-           start = as.character(start),
-           end = as.character(end),
-           r_h = ifelse(start == "", id, NA),
-           r_1b = ifelse(start == "1B", id, NA),
-           r_2b = ifelse(start == "2B", id, NA),
-           r_3b = ifelse(start == "3B", id, NA),
-           event_h = ifelse(start == "", event, ""),
-           event_1b = ifelse(start == "1B", event, ""),
-           event_2b = ifelse(start == "2B", event, ""),
-           event_3b = ifelse(start == "3B", event, ""),
-           score_h = ifelse(start == "", score, NA),
-           score_1b = ifelse(start == "1B", score, NA),
-           score_2b = ifelse(start == "2B", score, NA),
-           score_3b = ifelse(start == "3B", score, NA),
-           rbi_h = ifelse(start == "", rbi, NA),
-           rbi_1b = ifelse(start == "1B", rbi, NA),
-           rbi_2b = ifelse(start == "2B", rbi, NA),
-           rbi_3b = ifelse(start == "3B", rbi, NA),
-           earned_h = ifelse(start == "", earned, NA),
-           earned_1b = ifelse(start == "1B", earned, NA),
-           earned_2b = ifelse(start == "2B", earned, NA),
-           earned_3b = ifelse(start == "3B", earned, NA)) %>%
-    ungroup %>%
-    distinct(game.bnum, .keep_all = TRUE) %>%
-    select(-start, -end, -id, -event, -score, -rbi, -earned)
-}
-
-runner_2008 <- clean_runner(runner_2008)
-runner_2009 <- clean_runner(runner_2009)
-runner_2010 <- clean_runner(runner_2010)
-runner_2011 <- clean_runner(runner_2011)
-runner_2012 <- clean_runner(runner_2012)
-runner_2013 <- clean_runner(runner_2013)
-runner_2014 <- clean_runner(runner_2014)
-runner_2015 <- clean_runner(runner_2015)
-runner_2016 <- clean_runner(runner_2016)
-runner_2017 <- clean_runner(runner_2017)
+#Will deal with runner merge later
+# clean_runner <- function(runner) {
+#   runner %>% dplyr::rename(event_num_r = event_num) %>%
+#     select(-season, -gameday_link, -inning, -inning_side, -next_, -num, -url) %>%
+#     group_by(game.bnum) %>%
+#     mutate(event = as.character(event),
+#            start = as.character(start),
+#            end = as.character(end),
+#            r_h = ifelse(start == "", id, NA),
+#            r_1b = ifelse(start == "1B", id, NA),
+#            r_2b = ifelse(start == "2B", id, NA),
+#            r_3b = ifelse(start == "3B", id, NA),
+#            event_h = ifelse(start == "", event, ""),
+#            event_1b = ifelse(start == "1B", event, ""),
+#            event_2b = ifelse(start == "2B", event, ""),
+#            event_3b = ifelse(start == "3B", event, ""),
+#            score_h = ifelse(start == "", score, NA),
+#            score_1b = ifelse(start == "1B", score, NA),
+#            score_2b = ifelse(start == "2B", score, NA),
+#            score_3b = ifelse(start == "3B", score, NA),
+#            rbi_h = ifelse(start == "", rbi, NA),
+#            rbi_1b = ifelse(start == "1B", rbi, NA),
+#            rbi_2b = ifelse(start == "2B", rbi, NA),
+#            rbi_3b = ifelse(start == "3B", rbi, NA),
+#            earned_h = ifelse(start == "", earned, NA),
+#            earned_1b = ifelse(start == "1B", earned, NA),
+#            earned_2b = ifelse(start == "2B", earned, NA),
+#            earned_3b = ifelse(start == "3B", earned, NA)) %>%
+#     ungroup %>%
+#     distinct(game.bnum, .keep_all = TRUE) %>%
+#     select(-start, -end, -id, -event, -score, -rbi, -earned)
+# }
+# 
+# runner_2008 <- clean_runner(runner_2008)
+# runner_2009 <- clean_runner(runner_2009)
+# runner_2010 <- clean_runner(runner_2010)
+# runner_2011 <- clean_runner(runner_2011)
+# runner_2012 <- clean_runner(runner_2012)
+# runner_2013 <- clean_runner(runner_2013)
+# runner_2014 <- clean_runner(runner_2014)
+# runner_2015 <- clean_runner(runner_2015)
+# runner_2016 <- clean_runner(runner_2016)
+# runner_2017 <- clean_runner(runner_2017)
 
 #Merge at.bat to pitch first
 df_2008 <- join(pitch_2008, atbat_2008, by="game.bnum", type="left")
@@ -203,22 +211,109 @@ df_2015 <- join(pitch_2015, atbat_2015, by="game.bnum", type="left")
 df_2016 <- join(pitch_2016, atbat_2016, by="game.bnum", type="left")
 df_2017 <- join(pitch_2017, atbat_2017, by="game.bnum", type="left")
 
+pitch_atbat_select <- function(df) {
+  df <- df %>%
+    select(season,
+           date,
+           gameday_link,
+           num,
+           inning,
+           inning_side,
+           next_,
+           id,
+           event_num_p,
+           event_num_ab,
+           tfs,
+           tfs_zulu,
+           sv_id,
+           start_tfs,
+           start_tfs_zulu,
+           count,
+           on_1b,
+           on_2b,
+           on_3b,
+           sz_top,
+           sz_bot,
+           type,
+           des,
+           pitch_type,
+           type_confidence,
+           start_speed,
+           end_speed,
+           y0,
+           x0,
+           z0,
+           vx0,
+           vy0,
+           vz0,
+           ax,
+           ay,
+           az,
+           spin_dir,
+           spin_rate,
+           px,
+           pz,
+           x,
+           y,
+           zone,
+           pfx_x,
+           pfx_z,
+           break_y,
+           break_angle,
+           break_length,
+           nasty,
+           cc,
+           mt,
+           pitcher,
+           pitcher_name,
+           p_throws,
+           batter,
+           batter_name,
+           stand,
+           b_height,
+           b,
+           s,
+           o,
+           atbat_des,
+           event,
+           event2,
+           event3,
+           event4,
+           score,
+           home_team_runs,
+           away_team_runs,
+           url,
+           BadData_P,
+           BadData_AB)
+}
+
+df_2008 <- pitch_atbat_select(df_2008)
+df_2009 <- pitch_atbat_select(df_2009)
+df_2010 <- pitch_atbat_select(df_2010)
+df_2011 <- pitch_atbat_select(df_2011)
+df_2012 <- pitch_atbat_select(df_2012)
+df_2013 <- pitch_atbat_select(df_2013)
+df_2014 <- pitch_atbat_select(df_2014)
+df_2015 <- pitch_atbat_select(df_2015)
+df_2016 <- pitch_atbat_select(df_2016)
+df_2017 <- pitch_atbat_select(df_2017)
+
 rm(list=ls(pattern="^atbat"))
 rm(list=ls(pattern="^pitch"))
 
-#Join runner info now
-df_2008 <- join(df_2008, runner_2008, by="game.bnum", type="left")
-df_2009 <- join(df_2009, runner_2009, by="game.bnum", type="left")
-df_2010 <- join(df_2010, runner_2010, by="game.bnum", type="left")
-df_2011 <- join(df_2011, runner_2011, by="game.bnum", type="left")
-df_2012 <- join(df_2012, runner_2012, by="game.bnum", type="left")
-df_2013 <- join(df_2013, runner_2013, by="game.bnum", type="left")
-df_2014 <- join(df_2014, runner_2014, by="game.bnum", type="left")
-df_2015 <- join(df_2015, runner_2015, by="game.bnum", type="left")
-df_2016 <- join(df_2016, runner_2016, by="game.bnum", type="left")
-df_2017 <- join(df_2017, runner_2017, by="game.bnum", type="left")
-
-rm(list=ls(pattern="^runner"))
+#Will join runner info later
+# df_2008 <- join(df_2008, runner_2008, by="game.bnum", type="left")
+# df_2009 <- join(df_2009, runner_2009, by="game.bnum", type="left")
+# df_2010 <- join(df_2010, runner_2010, by="game.bnum", type="left")
+# df_2011 <- join(df_2011, runner_2011, by="game.bnum", type="left")
+# df_2012 <- join(df_2012, runner_2012, by="game.bnum", type="left")
+# df_2013 <- join(df_2013, runner_2013, by="game.bnum", type="left")
+# df_2014 <- join(df_2014, runner_2014, by="game.bnum", type="left")
+# df_2015 <- join(df_2015, runner_2015, by="game.bnum", type="left")
+# df_2016 <- join(df_2016, runner_2016, by="game.bnum", type="left")
+# df_2017 <- join(df_2017, runner_2017, by="game.bnum", type="left")
+# 
+# rm(list=ls(pattern="^runner"))
 
 write.csv(df_2008, file=paste0(save_path, "df_2008.csv"), row.names=FALSE)
 write.csv(df_2009, file=paste0(save_path, "df_2009.csv"), row.names=FALSE)
